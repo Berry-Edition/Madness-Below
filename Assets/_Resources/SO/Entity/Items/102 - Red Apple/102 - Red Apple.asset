@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7c202d8ef21c4f6d84a4dffed1b3ee4e, type: 3}
+  m_Name: 102 - Red Apple
+  m_EditorClassIdentifier: 
+  _entityGuid: 102
+  _entityName: Red Apple
+  _isItem: 1
+  _entityPrefab: {fileID: 3771707835760475950, guid: 44e5f0b5e241e9d42a904600137fc374, type: 3}
+  _itemConsumableData:
+    TargetHunger: 1
+    TargetThirst: 1
+    TargetHealth: 0
+    HungerBonus: 3
+    ThirstBonus: 5
+    HealthBonus: 0

@@ -1,0 +1,6 @@
+﻿public enum eFLASHLIGHT_STATES
+{
+    FLASHLIGHT_OFF = 0,
+    FLASHLIGHT_ON = 1,
+    FLASHLIGHT_DIMMING = 2, 
+}
