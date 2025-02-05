@@ -189,16 +189,16 @@ public class Player : MonoBehaviour {
         _movementDirection = new Vector2(_horizontalInput, _verticalInput);
         
         #region Player Input Animation
-        if (_horizontalInput > 0)
+        if (_verticalInput > 0)
             _itemAttach.SetDirection(Vector2.left);
         
-        if (_horizontalInput < 0)
+        if (_verticalInput < 0)
             _itemAttach.SetDirection(Vector2.right);
 
-        if (_verticalInput > 0)
+        if (_horizontalInput > 0)
             _itemAttach.SetDirection(Vector2.up);
         
-        if (_verticalInput < 0)
+        if (_horizontalInput < 0)
             _itemAttach.SetDirection(Vector2.down);
         #endregion
         
