@@ -124,6 +124,12 @@ public class Player : MonoBehaviour {
 
         Gizmos.color = Mathf.Abs(_verticalInput) < 0.1f ? Color.white : Color.red;
         Gizmos.DrawRay(transform.position, _verticalInput >= 0 ? Vector3.up : Vector3.down);
+
+        if (_target != Vector3.zero)
+        {
+            Gizmos.color = Color.green;
+            Gizmos.DrawSphere(_target, 0.2f);
+        }
     }
     
     private void FixedUpdate() {
@@ -152,7 +158,14 @@ public class Player : MonoBehaviour {
             if (_rb.velocity != Vector2.zero)
                 _target = Vector2.zero;
         }
+
+        ClickToMove();
         
+        
+        RbVelocity = _rb.velocity.magnitude;
+    }
+
+    private void ClickToMove(){
         // player's rigidbody velocity as four means the player is moving
         if (Input.GetMouseButtonUp(0))
         {
@@ -185,8 +198,6 @@ public class Player : MonoBehaviour {
                 }   
             }
         }
-        
-        RbVelocity = _rb.velocity.magnitude;
     }
     
     private void MovePlayer(){
