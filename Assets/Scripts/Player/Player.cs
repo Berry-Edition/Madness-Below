@@ -218,7 +218,6 @@ public class Player : MonoBehaviour {
                 // Mouvement vertical
                 _playerAnimator.SetFloat(PlayerAnimator.ANIMATOR_VERTICAL, _clickToMoveDirection.y);
                 _playerAnimator.SetFloat(PlayerAnimator.ANIMATOR_HORIZONTAL, 0);
-                print(_clickToMoveDirection.y > 0 ? "top" : "bottom");
             }
         }
 
