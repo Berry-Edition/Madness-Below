@@ -21,4 +21,9 @@ public class PlayerAnimator : MonoBehaviour{
         
         print($"{_player.GetInput().y} {_player.GetInput().x}");
     }
+
+    public void ForceIdle(){
+        _playerAnimator.SetFloat(PlayerAnimator.ANIMATOR_VERTICAL, 0);
+        _playerAnimator.SetFloat(PlayerAnimator.ANIMATOR_HORIZONTAL, 0);
+    }
 }
