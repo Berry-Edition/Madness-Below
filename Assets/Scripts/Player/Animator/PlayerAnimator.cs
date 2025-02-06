@@ -14,16 +14,4 @@ public class PlayerAnimator : MonoBehaviour{
 
     public const string ANIMATOR_HORIZONTAL = "Horizontal";
     public const string ANIMATOR_VERTICAL = "Vertical";
-    
-    private void Update(){
-        _playerAnimator.SetFloat(Vertical, _player.GetInput().y);
-        _playerAnimator.SetFloat(Horizontal, _player.GetInput().x);
-        
-        print($"{_player.GetInput().y} {_player.GetInput().x}");
-    }
-
-    public void ForceIdle(){
-        _playerAnimator.SetFloat(PlayerAnimator.ANIMATOR_VERTICAL, 0);
-        _playerAnimator.SetFloat(PlayerAnimator.ANIMATOR_HORIZONTAL, 0);
-    }
 }

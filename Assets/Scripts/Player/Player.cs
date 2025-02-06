@@ -50,7 +50,7 @@ public class Player : MonoBehaviour {
     private bool _isMoving;
 
     
-    private Vector3 _target;
+    private Vector3 _pointAndClicktarget;
     #region Constants
     public const float RUN_SPEED = 4f;
     
@@ -70,6 +70,39 @@ public class Player : MonoBehaviour {
 
     public Vector2 GetVelocity(){
         return _rb.velocity;
+    }
+
+    private void PlayerAnimations(){
+        _isMoving = _isCrouching || Mathf.Approximately(_rbVelocity, 4) || (Vector2)_pointAndClicktarget != Vector2.zero;
+        
+        if (_isMoving)
+        {
+            if ((Vector2)_pointAndClicktarget == Vector2.zero)
+            {
+                _playerAnimator.SetFloat(PlayerAnimator.ANIMATOR_HORIZONTAL, GetInput().x);
+                _playerAnimator.SetFloat(PlayerAnimator.ANIMATOR_VERTICAL,   GetInput().y);
+            }
+            else
+            {
+                if (Mathf.Abs(_clickToMoveDirection.x) > Mathf.Abs(_clickToMoveDirection.y))
+                {
+                    // Mouvement horizontal
+                    _playerAnimator.SetFloat(PlayerAnimator.ANIMATOR_HORIZONTAL, _clickToMoveDirection.x);
+                    _playerAnimator.SetFloat(PlayerAnimator.ANIMATOR_VERTICAL, 0);
+                    print(_clickToMoveDirection.x > 0 ? "right" : "left");
+                }
+                else if (Mathf.Abs(_clickToMoveDirection.x) < Mathf.Abs(_clickToMoveDirection.y))
+                {
+                    // Mouvement vertical
+                    _playerAnimator.SetFloat(PlayerAnimator.ANIMATOR_VERTICAL, _clickToMoveDirection.y);
+                    _playerAnimator.SetFloat(PlayerAnimator.ANIMATOR_HORIZONTAL, 0);
+                }   
+            }
+        }
+        else
+        {
+            ResetPlayerAnimation();
+        }
     }
     
     private void Update(){
@@ -93,20 +126,9 @@ public class Player : MonoBehaviour {
         }
         else EndCrouch();
         
-        if (_isDashing)
-        {
-            _dashTimeLeft -= Time.deltaTime;
-            if (_dashTimeLeft <= 0f)
-            {
-                EndDash();
-            }
-        }
+        PlayerAnimations();
 
-        // Cooldown timer
-        if (_dashCooldownTimer > 0f)
-        {
-            _dashCooldownTimer -= Time.deltaTime;
-        }
+        print(_isMoving);
     }
     
     private void OnDrawGizmos(){
@@ -116,70 +138,99 @@ public class Player : MonoBehaviour {
         Gizmos.color = Mathf.Abs(_verticalInput) < 0.1f ? Color.white : Color.red;
         Gizmos.DrawRay(transform.position, _verticalInput >= 0 ? Vector3.up : Vector3.down);
 
-        if (_target != Vector3.zero)
+        if ((Vector2)_pointAndClicktarget != Vector2.zero)
         {
             Gizmos.color = Color.green;
-            Gizmos.DrawSphere(_target, 0.2f);
+            Gizmos.DrawSphere(_pointAndClicktarget, 0.2f);
         }
     }
     
     private void FixedUpdate() {
         _movementDirection.Normalize();
         _rb.AddForce(new Vector2(_movementDirection.normalized.x * _runSpeed, _movementDirection.normalized.y * _runSpeed));
-        
+
         if (_isDashing)
         {
             _rb.velocity = _movementDirection * _dashSpeed;
-            _target = Vector2.zero;
+            _pointAndClicktarget = Vector2.zero;
         }
         else if (_isSprinting)
         {
             _rb.velocity = _movementDirection * _sprintSpeed;
-            _target = Vector2.zero;
+            _pointAndClicktarget = Vector2.zero;
         }
         else if (_isCrouching)
         {
             _rb.velocity = _movementDirection * CROUCH_SPEED;
-            _target = Vector2.zero;
+            _pointAndClicktarget = Vector2.zero;
         }
         else
         {
             // Normal movement
             _rb.velocity = _movementDirection * RUN_SPEED;
             if (_rb.velocity != Vector2.zero)
-                _target = Vector2.zero;
+                _pointAndClicktarget = Vector2.zero;
         }
-
-        ClickToMove();
         
+        if (_isDashing)
+        {
+            _dashTimeLeft -= Time.deltaTime;
+            if (_dashTimeLeft <= 0f)
+            {
+                EndDash();
+            }
+        }
+        
+        // Cooldown timer
+        if (_dashCooldownTimer > 0f)
+        {
+            _dashCooldownTimer -= Time.deltaTime;
+        }
         
         RbVelocity = _rb.velocity.magnitude;
+        ClickToMove();
     }
     
     private Vector2 _clickToMoveDirection = Vector2.zero;
     
     private void ClickToMove(){
         // player's rigidbody velocity as four means the player is moving
-        if (Input.GetMouseButtonUp(0))
+        if (!_isMoving && Input.GetMouseButtonUp(0))
         {
-            _target = _cam.ScreenToWorldPoint(Input.mousePosition);
-            _target.z = transform.position.z;
+            _pointAndClicktarget = _cam.ScreenToWorldPoint(Input.mousePosition);
+            _pointAndClicktarget.z = transform.position.z;
         }
 
-        if ((Vector2)_target != Vector2.zero)
+        if ((Vector2)_pointAndClicktarget != Vector2.zero)
         {
             if (_rb.velocity.magnitude == 0)
             {
-                _clickToMoveDirection = (_target - transform.position).normalized;
+                _clickToMoveDirection = (_pointAndClicktarget - transform.position).normalized;
                 
                 _rb.velocity = new Vector2(_clickToMoveDirection.x * RUN_SPEED, _clickToMoveDirection.y * RUN_SPEED);
                 
-                if (Vector2.Distance(transform.position, _target) <= 0.5f)
+                if (Vector2.Distance(transform.position, _pointAndClicktarget) <= 0.5f)
                 {
-                    _target = Vector2.zero;
+                    _pointAndClicktarget = Vector2.zero;
                 }   
             }
         }
+    }
+
+    /// <summary>
+    /// Set Horizontal & Vertical animation floats to zero
+    /// </summary>
+    public void ResetPlayerAnimation(){
+        _playerAnimator.SetFloat(PlayerAnimator.ANIMATOR_HORIZONTAL, 0);
+        _playerAnimator.SetFloat(PlayerAnimator.ANIMATOR_VERTICAL,   0);
+    }
+    
+    /// <summary>
+    /// Horizontal & Vertical animation floats to player inputs
+    /// </summary>
+    public void UpdatePlayerAnimationToInputs() {
+        _playerAnimator.SetFloat(PlayerAnimator.ANIMATOR_HORIZONTAL, GetInput().x);
+        _playerAnimator.SetFloat(PlayerAnimator.ANIMATOR_VERTICAL,   GetInput().y);
     }
     
     private void MovePlayer(){
@@ -188,7 +239,7 @@ public class Player : MonoBehaviour {
         
         _movementDirection = new Vector2(_horizontalInput, _verticalInput);
         
-        #region Player Input Animation
+        #region Player Item Attach Directions
         if (_verticalInput > 0)
             _itemAttach.SetDirection(Vector2.left);
         
@@ -200,32 +251,6 @@ public class Player : MonoBehaviour {
         
         if (_horizontalInput < 0)
             _itemAttach.SetDirection(Vector2.down);
-        #endregion
-        
-        #region Click To Move Animation
-
-        if (_clickToMoveDirection != Vector2.zero)
-        {
-            if (Mathf.Abs(_clickToMoveDirection.x) > Mathf.Abs(_clickToMoveDirection.y))
-            {
-                // Mouvement horizontal
-                _playerAnimator.SetFloat(PlayerAnimator.ANIMATOR_HORIZONTAL, _clickToMoveDirection.x);
-                _playerAnimator.SetFloat(PlayerAnimator.ANIMATOR_VERTICAL, 0);
-                print(_clickToMoveDirection.x > 0 ? "right" : "left");
-            }
-            else if (Mathf.Abs(_clickToMoveDirection.x) < Mathf.Abs(_clickToMoveDirection.y))
-            {
-                // Mouvement vertical
-                _playerAnimator.SetFloat(PlayerAnimator.ANIMATOR_VERTICAL, _clickToMoveDirection.y);
-                _playerAnimator.SetFloat(PlayerAnimator.ANIMATOR_HORIZONTAL, 0);
-            }
-        }
-
-        if ((Vector2)_target != Vector2.zero) return;
-        
-        _playerAnimator.SetFloat(PlayerAnimator.ANIMATOR_VERTICAL, 0);
-        _playerAnimator.SetFloat(PlayerAnimator.ANIMATOR_HORIZONTAL, 0);
-        
         #endregion
     }
     
