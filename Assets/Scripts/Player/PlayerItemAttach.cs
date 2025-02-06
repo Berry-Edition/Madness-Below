@@ -78,7 +78,7 @@ public sealed class PlayerItemAttach : MonoBehaviour
         else
         {
             // player is moving left (1,0,0)
-            ItemAttachGameObject.transform.rotation = Quaternion.Euler(0, 0, angle);
+            ItemAttachGameObject.transform.rotation = Quaternion.Euler(0, 0, -angle);
         }
     }
 
