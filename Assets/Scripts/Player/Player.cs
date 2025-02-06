@@ -70,8 +70,7 @@ public class Player : MonoBehaviour {
         {
             if ((Vector2)_pointAndClicktarget == Vector2.zero)
             {
-                _playerAnimator.SetFloat(PlayerAnimator.ANIMATOR_HORIZONTAL, GetInput().x);
-                _playerAnimator.SetFloat(PlayerAnimator.ANIMATOR_VERTICAL,   GetInput().y);
+                UpdatePlayerAnimationToInputs();
             }
             else
             {
@@ -87,6 +86,7 @@ public class Player : MonoBehaviour {
                     // Mouvement vertical
                     _playerAnimator.SetFloat(PlayerAnimator.ANIMATOR_VERTICAL, _clickToMoveDirection.y);
                     _playerAnimator.SetFloat(PlayerAnimator.ANIMATOR_HORIZONTAL, 0);
+                    print(_clickToMoveDirection.y > 0 ? "top" : "down");
                 }   
             }
         }
@@ -138,12 +138,19 @@ public class Player : MonoBehaviour {
     
     private void FixedUpdate() {
         _movementDirection.Normalize();
+        
         _rb.AddForce(new Vector2(_movementDirection.normalized.x * _runSpeed, _movementDirection.normalized.y * _runSpeed));
 
         if (_isDashing)
         {
             _rb.velocity = _movementDirection * _dashSpeed;
             _pointAndClicktarget = Vector2.zero;
+            
+            _dashTimeLeft -= Time.deltaTime;
+            if (_dashTimeLeft <= 0f)
+            {
+                EndDash();
+            }
         }
         else if (_isSprinting)
         {
@@ -162,34 +169,46 @@ public class Player : MonoBehaviour {
             if (_rb.velocity != Vector2.zero)
                 _pointAndClicktarget = Vector2.zero;
         }
-        
-        if (_isDashing)
-        {
-            _dashTimeLeft -= Time.deltaTime;
-            if (_dashTimeLeft <= 0f)
-            {
-                EndDash();
-            }
-        }
-        
+
         // Cooldown timer
         if (_dashCooldownTimer > 0f)
         {
             _dashCooldownTimer -= Time.deltaTime;
         }
         
-        RbVelocity = _rb.velocity.magnitude;
         ClickToMove();
+        RbVelocity = _rb.velocity.magnitude;
     }
     
     private Vector2 _clickToMoveDirection = Vector2.zero;
+
+    private void SetPointAndClickTarget(Vector2 newPoint){
+        
+        if (Vector2.Distance(transform.position, newPoint) < .7f)
+            return;
+        
+        _pointAndClicktarget = newPoint;
+        _pointAndClicktarget.z = transform.position.z;
+        
+        _clickToMoveDirection = (_pointAndClicktarget - transform.position).normalized;
+        
+        _itemAttach.SetDirection(_clickToMoveDirection.x > _clickToMoveDirection.y ? Vector2.right : Vector2.left);
+        _itemAttach.SetDirection(_clickToMoveDirection.y > _clickToMoveDirection.x ? Vector2.down : Vector2.up);
+    }
     
     private void ClickToMove(){
-        // player's rigidbody velocity as four means the player is moving
+        // if the player is currently following in a point&click movement
+        if (_clickToMoveDirection != Vector2.zero && (!_isSprinting || !_isDashing || !_isCrouching))
+        {
+            if (Input.GetMouseButtonDown(0))
+            {
+                SetPointAndClickTarget(_cam.ScreenToWorldPoint(Input.mousePosition));
+            }
+        }
+        
         if (!IsMoving && Input.GetMouseButtonUp(0))
         {
-            _pointAndClicktarget = _cam.ScreenToWorldPoint(Input.mousePosition);
-            _pointAndClicktarget.z = transform.position.z;
+            SetPointAndClickTarget(_cam.ScreenToWorldPoint(Input.mousePosition));
         }
 
         if ((Vector2)_pointAndClicktarget != Vector2.zero)
@@ -203,6 +222,7 @@ public class Player : MonoBehaviour {
                 if (Vector2.Distance(transform.position, _pointAndClicktarget) <= 0.5f)
                 {
                     _pointAndClicktarget = Vector2.zero;
+                    _clickToMoveDirection = Vector2.zero;
                 }   
             }
         }
@@ -225,23 +245,33 @@ public class Player : MonoBehaviour {
     }
     
     private void MovePlayer(){
-        _horizontalInput = Input.GetAxisRaw("Horizontal");
-        _verticalInput   = Input.GetAxisRaw("Vertical");
+        _horizontalInput = Input.GetAxis("Horizontal");
+        _verticalInput   = Input.GetAxis("Vertical");
         
         _movementDirection = new Vector2(_horizontalInput, _verticalInput);
         
         #region Player Item Attach Directions
-        if (_verticalInput > 0)
-            _itemAttach.SetDirection(Vector2.left);
         
-        if (_verticalInput < 0)
-            _itemAttach.SetDirection(Vector2.right);
+        switch (_verticalInput)
+        {
+            case > 0:
+                _itemAttach.SetDirection(Vector2.left);
+                break;
+            case < 0:
+                _itemAttach.SetDirection(Vector2.right);
+                break;
+        }
 
-        if (_horizontalInput > 0)
-            _itemAttach.SetDirection(Vector2.up);
-        
-        if (_horizontalInput < 0)
-            _itemAttach.SetDirection(Vector2.down);
+        switch (_horizontalInput)
+        {
+            case > 0:
+                _itemAttach.SetDirection(Vector2.up);
+                break;
+            case < 0:
+                _itemAttach.SetDirection(Vector2.down);
+                break;
+        }
+
         #endregion
     }
     
