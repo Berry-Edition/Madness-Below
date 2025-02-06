@@ -9,11 +9,9 @@ public sealed class PlayerItemAttach : MonoBehaviour
     [Header("Item Attach :")]
     [SerializeField] private Transform _itemAttach;
     [SerializeField] private GameEntity _itemAttachEntity;
-
-    /// <summary>
-    /// 0: left, 1: right, 2: top, 3: bottom
-    /// </summary>
-    [SerializeField] private Transform[] _itemSides;
+    [Space] [SerializeField, Tooltip("Leave blank if the _itemAttachEntity is used.\nInput the item's GUID you wish to use.")] private int _setItemAttachID;
+    
+    [Tooltip("Item Sides Order : \n1:Top\n2:Bottom\n3:Right\n4:Left"), SerializeField] private Transform[] _itemSides;
 
     [HideInInspector] public GameObject ItemAttachGameObject;
 
@@ -21,9 +19,13 @@ public sealed class PlayerItemAttach : MonoBehaviour
     
     private void Start()
     {
-        if (_itemAttachEntity != null && _itemAttachEntity.EntityPrefab != null)
+        if (_setItemAttachID != 0)
         {
-            // Instanciation de l'item attaché
+            _itemAttachEntity = GameManager.Instance.EntityManager.FindEntityByGUID(_setItemAttachID);
+        }
+
+        else
+        {
             ItemAttachGameObject = Instantiate(
                 _itemAttachEntity.EntityPrefab, 
                 _itemAttach.position, 
@@ -54,7 +56,30 @@ public sealed class PlayerItemAttach : MonoBehaviour
 
         // Calculer et appliquer la rotation de l'item
         float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-        ItemAttachGameObject.transform.rotation = Quaternion.Euler(0, 0, angle + 90);
+
+        if (attachPoint.Equals(_itemSides[0]))
+        {
+            // player is moving top (0,1,0)
+            ItemAttachGameObject.transform.rotation = Quaternion.Euler(0, 0, angle + 180);
+        }
+        
+        else if (attachPoint.Equals(_itemSides[1]))
+        {
+            // player is moving bottom (0,-1,0)
+            ItemAttachGameObject.transform.rotation = Quaternion.Euler(0, 0, angle + -180);
+        }
+        
+        else if (attachPoint.Equals(_itemSides[2]))
+        {
+            // player is moving right (-1,0,0)
+            ItemAttachGameObject.transform.rotation = Quaternion.Euler(0, 0, -angle);
+        }
+        
+        else
+        {
+            // player is moving left (1,0,0)
+            ItemAttachGameObject.transform.rotation = Quaternion.Euler(0, 0, angle);
+        }
     }
 
     /// <summary>
