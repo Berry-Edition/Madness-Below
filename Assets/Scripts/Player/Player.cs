@@ -46,8 +46,9 @@ public class Player : MonoBehaviour {
     
     private float _horizontalInput;
     private float _verticalInput;
-    
-    private bool _isMoving;
+
+    private bool IsMoving => _isCrouching || _isDashing || _isSprinting || Mathf.Approximately(_rbVelocity, 4) ||
+                             (Vector2)_pointAndClicktarget != Vector2.zero;
 
     
     private Vector3 _pointAndClicktarget;
@@ -64,18 +65,8 @@ public class Player : MonoBehaviour {
         return new Vector2(_horizontalInput, _verticalInput).normalized;
     }
 
-    public Vector2 GetNormalizedPosition(){
-        return _rb.position.normalized;
-    }
-
-    public Vector2 GetVelocity(){
-        return _rb.velocity;
-    }
-
     private void PlayerAnimations(){
-        _isMoving = _isCrouching || Mathf.Approximately(_rbVelocity, 4) || (Vector2)_pointAndClicktarget != Vector2.zero;
-        
-        if (_isMoving)
+        if (IsMoving)
         {
             if ((Vector2)_pointAndClicktarget == Vector2.zero)
             {
@@ -128,7 +119,7 @@ public class Player : MonoBehaviour {
         
         PlayerAnimations();
 
-        print(_isMoving);
+        print(IsMoving);
     }
     
     private void OnDrawGizmos(){
@@ -195,7 +186,7 @@ public class Player : MonoBehaviour {
     
     private void ClickToMove(){
         // player's rigidbody velocity as four means the player is moving
-        if (!_isMoving && Input.GetMouseButtonUp(0))
+        if (!IsMoving && Input.GetMouseButtonUp(0))
         {
             _pointAndClicktarget = _cam.ScreenToWorldPoint(Input.mousePosition);
             _pointAndClicktarget.z = transform.position.z;
